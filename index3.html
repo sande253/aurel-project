@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aurel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+        font-family: 'Poppins', sans-serif;
+        font-size: 16px;
+        background: #151515;
+        color: #fff;
+        overflow-x: hidden;
+      }
+
+      #bgVideo {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        z-index: -100;
+        pointer-events: none;
+        opacity: 0.6;
+      }
+
+      #bgOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: -99;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem;
+      }
+
+      header.hero {
+        text-align: center;
+        padding: 6rem 2rem 4rem;
+        max-width: 900px;
+      }
+
+      header.hero h1 {
+        font-size: 4.5rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        background: linear-gradient(45deg, #fff, #a1c4fd);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        animation: slideIn 1.2s ease-out;
+      }
+
+      header.hero p {
+        font-size: 1.3rem;
+        color: #fff;
+        line-height: 1.7;
+        margin-top: 1.5rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease, color 0.3s ease;
+      }
+
+      header.hero p:hover {
+        transform: scale(1.02);
+        color: #a1c4fd;
+      }
+
+      .slides {
+        display: grid;
+        place-items: center;
+        position: relative;
+        margin: 4rem 0;
+        max-width: 1200px;
+      }
+
+      .slides > .slide {
+        grid-area: 1 / -1;
+      }
+
+      .slides > button {
+        appearance: none;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid #fff;
+        color: #fff;
+        position: absolute;
+        font-size: 2rem;
+        width: 3rem;
+        height: 3rem;
+        top: 50%;
+        transform: translateY(-50%);
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .slides > button:hover {
+        background: #fff;
+        color: #151515;
+        transform: translateY(-50%) scale(1.05);
+      }
+
+      .slides > button:first-child {
+        left: -2rem;
+      }
+
+      .slides > button:last-child {
+        right: -2rem;
+      }
+
+      .slideContent {
+        width: 25vw;
+        height: 35vw;
+        transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out;
+        opacity: 0.5;
+        display: grid;
+        align-content: end;
+        transform-style: preserve-3d;
+        transform: perspective(1200px) translateX(calc(120% * var(--offset)))
+          rotateY(calc(-30deg * var(--dir)));
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .slideContentInner {
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0));
+        padding: 1.5rem;
+        border-radius: 0 0 10px 10px;
+        opacity: 1;
+        transition: transform 0.3s ease;
+      }
+
+      .slideTitle {
+        font-size: 1.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+        color: #fff;
+      }
+
+      .slideSubtitle {
+        font-size: 1.4rem;
+        font-weight: 300;
+        text-transform: uppercase;
+        margin: 0.5rem 0;
+        color: #f0f0f0;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+
+      .slideSubtitle::before {
+        content: "— ";
+      }
+
+      .slideDescription {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: #fff;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      }
+
+      .slide[data-active] {
+        z-index: 2;
+        pointer-events: auto;
+      }
+
+      .slide[data-active] .slideContentInner {
+        opacity: 1;
+        transform: scale(1.05);
+      }
+
+      .slide[data-active] .slideContent {
+        --x: calc(var(--px) - 0.5);
+        --y: calc(var(--py) - 0.5);
+        opacity: 1;
+        transform: perspective(1200px) translateX(0);
+      }
+
+      .slide[data-active] .slideContent:hover {
+        transform: perspective(1200px)
+          rotateY(calc(var(--x) * 20deg))
+          rotateX(calc(var(--y) * -20deg));
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      @keyframes slideIn {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      header.hero {
+        animation: slideIn 1s ease-out;
+      }
+    </style>
+  </head>
+  <body>
+    <video autoplay muted loop playsinline id="bgVideo">
+      <source src="https://www.w3schools.com/howto/rain.mp4" type="video/mp4" />
+      <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
+      Your browser does not support the video tag.
+    </video>
+    <div id="bgOverlay"></div>
+
+    <header class="hero">
+      <h1>Aurel</h1>
+      <p>
+        Where Artificial Intelligence Meets Fashion. Discover the perfect style
+        with smart suggestions, real-time previews, and personalized aesthetics.
+      </p>
+    </header>
+
+    <div id="app"></div>
+
+    <!-- Include Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+
+    <!-- React Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <!-- React Code -->
+    <script type="text/babel">
+      const slides = [
+        {
+          title: "Virtual Try-on",
+          subtitle: "Experience",
+          description: "Try outfits digitally before buying in 3D.",
+          image: null, // No 2D image; handled by Three.js
+          link: "https://example.com/virtual-try-on",
+          model: "tshirt.glTF" // Placeholder for 3D model file (upload to server)
+        },
+        {
+          title: "Doodle2Photo",
+          subtitle: "Turn Sketches Into Reality",
+          description: "Transform your fashion sketches into stunning photos.",
+          image: "https://via.placeholder.com/600x800?text=Doodle2Photo",
+          link: "https://example.com/smart-mirror"
+        },
+        {
+          title: "Fashion Metrics",
+          subtitle: "Analytics",
+          description: "Gain insights into customer preferences.",
+          image: "https://via.placeholder.com/600x800?text=Fashion+Metrics",
+          link: "https://example.com/fashion-metrics"
+        },
+        {
+          title: "Sustainable Fashion",
+          subtitle: "Eco Trends",
+          description: "Style with a conscience.",
+          image: "https://via.placeholder.com/600x800?text=Sustainable+Fashion",
+          link: "https://example.com/sustainable-fashion"
+        }
+      ];
+
+      function useTilt(active) {
+        const ref = React.useRef(null);
+        React.useEffect(() => {
+          if (!ref.current || !active) return;
+          const el = ref.current;
+          const state = { rect: null, mouseX: 0, mouseY: 0 };
+
+          const handleMouseMove = (e) => {
+            if (!state.rect) state.rect = el.getBoundingClientRect();
+            state.mouseX = e.clientX;
+            state.mouseY = e.clientY;
+            const px = (state.mouseX - state.rect.left) / state.rect.width;
+            const py = (state.mouseY - state.rect.top) / state.rect.height;
+            el.style.setProperty("--px", px);
+            el.style.setProperty("--py", py);
+          };
+
+          el.addEventListener("mousemove", handleMouseMove);
+          return () => el.removeEventListener("mousemove", handleMouseMove);
+        }, [active]);
+
+        return ref;
+      }
+
+      function initThreeJS(container) {
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ alpha: true });
+        renderer.setSize(container.clientWidth, container.clientHeight);
+        container.innerHTML = '';
+        container.appendChild(renderer.domElement);
+
+        // Add lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        directionalLight.position.set(0, 1, 0).normalize();
+        scene.add(directionalLight);
+
+        // Load 3D model (placeholder)
+        const loader = new THREE.GLTFLoader();
+        loader.load('path/to/tshirt.glTF', (gltf) => {
+          const model = gltf.scene;
+          model.position.set(0, 0, 0); // Adjust position
+          model.scale.set(1, 1, 1); // Adjust scale
+          scene.add(model);
+        }, undefined, (error) => {
+          console.error('Error loading model:', error);
+        });
+
+        camera.position.z = 5;
+
+        function animate() {
+          requestAnimationFrame(animate);
+          renderer.render(scene, camera);
+        }
+        animate();
+
+        return { scene, camera, renderer };
+      }
+
+      const initialState = { slideIndex: 0 };
+      function slidesReducer(state, event) {
+        if (event.type === "NEXT") {
+          return {
+            ...state,
+            slideIndex: (state.slideIndex + 1) % slides.length
+          };
+        }
+        if (event.type === "PREV") {
+          return {
+            ...state,
+            slideIndex: (state.slideIndex - 1 + slides.length) % slides.length
+          };
+        }
+        return state;
+      }
+
+      function Slide({ slide, offset }) {
+        const active = offset === 0;
+        const ref = React.useRef(null);
+        const threeRef = React.useRef(null);
+
+        React.useEffect(() => {
+          if (active && slide.model && ref.current) {
+            threeRef.current = initThreeJS(ref.current);
+          }
+          return () => {
+            if (threeRef.current) {
+              threeRef.current.renderer.dispose();
+            }
+          };
+        }, [active, slide.model]);
+
+        return (
+          <div
+            ref={ref}
+            className="slide"
+            data-active={active || null}
+            style={{
+              "--offset": offset,
+              "--dir": offset === 0 ? 0 : offset > 0 ? 1 : -1
+            }}
+          >
+            <a href={slide.link} target="_blank" rel="noopener noreferrer">
+              <div className="slideContent">
+                {slide.model ? null : (
+                  <div
+                    style={{ backgroundImage: `url('${slide.image}')` }}
+                  />
+                )}
+                <div className="slideContentInner">
+                  <h2 className="slideTitle">{slide.title}</h2>
+                  <h3 className="slideSubtitle">{slide.subtitle}</h3>
+                  <p className="slideDescription">{slide.description}</p>
+                </div>
+              </div>
+            </a>
+          </div>
+        );
+      }
+
+      function App() {
+        const [state, dispatch] = React.useReducer(slidesReducer, initialState);
+
+        const visibleSlides = 3;
+        const extendedSlides = [...slides, ...slides, ...slides];
+
+        return (
+          <div className="slides">
+            <button onClick={() => dispatch({ type: "PREV" })}>‹</button>
+            {extendedSlides.map((slide, i) => {
+              const offset = i - slides.length - state.slideIndex;
+              if (Math.abs(offset) > Math.floor(visibleSlides / 2)) return null;
+              return (
+                <Slide slide={slide} offset={offset} key={`${i}-${slide.title}`} />
+              );
+            })}
+            <button onClick={() => dispatch({ type: "NEXT" })}>›</button>
+          </div>
+        );
+      }
+
+      ReactDOM.render(<App />, document.getElementById("app"));
+    </script>
+  </body>
+</html>

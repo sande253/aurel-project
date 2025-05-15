@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aurel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+        font-family: 'Poppins', sans-serif;
+        font-size: 16px; /* Changed to fixed size for consistency */
+        background: #151515;
+        color: #fff;
+        overflow-x: hidden;
+      }
+
+      #bgVideo {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        z-index: -100;
+        pointer-events: none;
+        opacity: 0.6; /* Added slight opacity for better text readability */
+      }
+
+      /* Added overlay for video background */
+      #bgOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.4); /* Subtle overlay */
+        z-index: -99;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 2rem; /* Added padding for breathing room */
+      }
+
+      header.hero {
+        text-align: center;
+        padding: 6rem 2rem 4rem; /* Increased padding */
+        max-width: 900px; /* Slightly wider for balance */
+      }
+
+      header.hero h1 {
+        font-size: 3.5rem; /* Slightly smaller for elegance */
+        font-weight: 700; /* Bolder for impact */
+        letter-spacing: 1px; /* Added for refinement */
+      }
+
+      header.hero p {
+        font-size: 1.1rem; /* Slightly smaller for balance */
+        color: #ddd; /* Lighter for contrast */
+        line-height: 1.6; /* Improved readability */
+        margin-top: 1rem;
+      }
+
+      .slides {
+        display: grid;
+        place-items: center;
+        position: relative;
+        margin: 4rem 0; /* Added margin for spacing */
+        max-width: 1200px; /* Constrain width */
+      }
+
+      .slides > .slide {
+        grid-area: 1 / -1;
+      }
+
+      .slides > button {
+        appearance: none;
+        background: rgba(255, 255, 255, 0.15); /* Softer background */
+        border: 1px solid #fff; /* Thinner border */
+        color: #fff;
+        position: absolute;
+        font-size: 2rem; /* Smaller buttons */
+        width: 3rem; /* Smaller size */
+        height: 3rem;
+        top: 50%; /* Centered vertically */
+        transform: translateY(-50%);
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .slides > button:hover {
+        background: #fff;
+        color: #151515;
+        transform: translateY(-50%) scale(1.05); /* Subtle scale */
+      }
+
+      .slides > button:first-child {
+        left: -2rem; /* Closer to slides */
+      }
+
+      .slides > button:last-child {
+        right: -2rem;
+      }
+
+      .slideContent {
+        width: 25vw; /* Slightly smaller for less clutter */
+        height: 35vw; /* Adjusted for proportion */
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        transition: transform 0.6s ease-in-out, opacity 0.6s ease-in-out; /* Smoother transition */
+        opacity: 0.5; /* Less opaque for non-active slides */
+        display: grid;
+        align-content: end; /* Align content to bottom */
+        transform-style: preserve-3d;
+        transform: perspective(1200px) translateX(calc(120% * var(--offset))) /* Wider spacing */
+          rotateY(calc(-30deg * var(--dir))); /* Reduced tilt */
+        border-radius: 10px; /* Added subtle rounding */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Subtle shadow */
+      }
+
+      .slideContentInner {
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0)); /* Darker gradient */
+        padding: 1.5rem;
+        border-radius: 0 0 10px 10px; /* Rounded bottom corners */
+        opacity: 1;
+      }
+
+      .slideTitle {
+        font-size: 1.5rem; /* Smaller for elegance */
+        font-weight: 500; /* Lighter weight */
+        text-transform: uppercase;
+        letter-spacing: 0.5px; /* Added for refinement */
+      }
+
+      .slideSubtitle {
+        font-size: 1.2rem; /* Smaller for hierarchy */
+        font-weight: 300; /* Lighter for contrast */
+        text-transform: uppercase;
+        margin: 0.5rem 0;
+      }
+
+      .slideSubtitle::before {
+        content: "— ";
+      }
+
+      .slideDescription {
+        font-size: 0.85rem; /* Smaller for balance */
+        line-height: 1.5;
+        color: #eee; /* Lighter for readability */
+      }
+
+      .slide[data-active] {
+        z-index: 2;
+        pointer-events: auto;
+      }
+
+      .slide[data-active] .slideContentInner {
+        opacity: 1;
+      }
+
+      .slide[data-active] .slideContent {
+        --x: calc(var(--px) - 0.5);
+        --y: calc(var(--py) - 0.5);
+        opacity: 1;
+        transform: perspective(1200px) translateX(0); /* No offset for active slide */
+      }
+
+      .slide[data-active] .slideContent:hover {
+        transform: perspective(1200px)
+          rotateY(calc(var(--x) * 20deg)) /* Reduced tilt effect */
+          rotateX(calc(var(--y) * -20deg));
+      }
+
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+
+      /* Added fade-in animation for hero */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      header.hero {
+        animation: fadeIn 1s ease-out;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
+      <h1>Aurel</h1>
+      <p>
+        Where Artificial Intelligence Meets Fashion. Discover the perfect style
+        with smart suggestions, real-time previews, and personalized aesthetics.
+      </p>
+    </header>
+
+    <div id="app"></div>
+
+    <!-- React Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <!-- React Code -->
+    <script type="text/babel">
+      const slides = [
+        {
+          title: "Virtual Try-on",
+          subtitle: "Experience",
+          description: "Try outfits digitally before buying.",
+          image: "2.jpg", // Placeholder for demo
+          link: "http://10.10.7.231:8502"
+        },
+        {
+          title: "Doodle2Photo",
+          subtitle: "Turn Sketches Into Reality",
+          description: "Transform your fashion sketches into stunning photos.",
+          image: "1.jpg",
+          link: "http://10.10.7.231:8504"
+        },
+        {
+          title: "Fashion Metrics",
+          subtitle: "Analytics",
+          description: "Gain insights into customer preferences.",
+          image: "4.jpg",
+          link: "http://10.10.7.231:8501"
+        },
+        {
+          title: "Sustainable Fashion",
+          subtitle: "Eco Trends",
+          description: "Style with a conscience.",
+          image: "5.png",
+          link: "https://aurelweb.vercel.app/others/sustain.html"
+        }
+      ];
+
+      function useTilt(active) {
+        const ref = React.useRef(null);
+        React.useEffect(() => {
+          if (!ref.current || !active) return;
+          const el = ref.current;
+          const state = { rect: null, mouseX: 0, mouseY: 0 };
+
+          const handleMouseMove = (e) => {
+            if (!state.rect) state.rect = el.getBoundingClientRect();
+            state.mouseX = e.clientX;
+            state.mouseY = e.clientY;
+            const px = (state.mouseX - state.rect.left) / state.rect.width;
+            const py = (state.mouseY - state.rect.top) / state.rect.height;
+            el.style.setProperty("--px", px);
+            el.style.setProperty("--py", py);
+          };
+
+          el.addEventListener("mousemove", handleMouseMove);
+          return () => el.removeEventListener("mousemove", handleMouseMove);
+        }, [active]);
+
+        return ref;
+      }
+
+      const initialState = { slideIndex: 0 };
+      function slidesReducer(state, event) {
+        if (event.type === "NEXT") {
+          return {
+            ...state,
+            slideIndex: (state.slideIndex + 1) % slides.length
+          };
+        }
+        if (event.type === "PREV") {
+          return {
+            ...state,
+            slideIndex: (state.slideIndex - 1 + slides.length) % slides.length
+          };
+        }
+        return state;
+      }
+
+      function Slide({ slide, offset }) {
+        const active = offset === 0;
+        const ref = useTilt(active);
+        return (
+          <div
+            ref={ref}
+            className="slide"
+            data-active={active || null}
+            style={{
+              "--offset": offset,
+              "--dir": offset === 0 ? 0 : offset > 0 ? 1 : -1
+            }}
+          >
+            <a href={slide.link} target="_blank" rel="noopener noreferrer">
+              <div
+                className="slideContent"
+                style={{ backgroundImage: `url('${slide.image}')` }}
+              >
+                <div className="slideContentInner">
+                  <h2 className="slideTitle">{slide.title}</h2>
+                  <h3 className="slideSubtitle">{slide.subtitle}</h3>
+                  <p className="slideDescription">{slide.description}</p>
+                </div>
+              </div>
+            </a>
+          </div>
+        );
+      }
+
+      function App() {
+        const [state, dispatch] = React.useReducer(slidesReducer, initialState);
+
+        const visibleSlides = 3; // Reduced to 3 for less clutter
+        const extendedSlides = [...slides, ...slides, ...slides];
+
+        return (
+          <div className="slides">
+            <button onClick={() => dispatch({ type: "PREV" })}>‹</button>
+            {extendedSlides.map((slide, i) => {
+              const offset = i - slides.length - state.slideIndex;
+              if (Math.abs(offset) > Math.floor(visibleSlides / 2)) return null;
+              return (
+                <Slide slide={slide} offset={offset} key={`${i}-${slide.title}`} />
+              );
+            })}
+            <button onClick={() => dispatch({ type: "NEXT" })}>›</button>
+          </div>
+        );
+      }
+
+      ReactDOM.render(<App />, document.getElementById("app"));
+    </script>
+  </body>
+</html>
